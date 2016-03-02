@@ -22,6 +22,7 @@
 
 #include <kinect_bridge2/KinectSpeech.h>
 #include <kinect_bridge2/KinectBodies.h>
+#include <kinect_bridge2/KinectDepth.h>
 
 class KinectBridge2Client
 {
@@ -33,10 +34,14 @@ public:
     typedef kinect_bridge2::KinectBody _KinectBodyMsg;
     typedef kinect_bridge2::KinectJoint _KinectJointMsg;
 
+    typedef kinect_bridge2::KinectDepthImage _KinectDepthImageMsg;
+    typedef kinect_bridge2::KinectDepthImageInfo _KinectDepthImageInfoMsg;
+
     ros::NodeHandle nh_rel_;
 
     ros::Publisher kinect_speech_pub_;
     ros::Publisher kinect_bodies_pub_;
+    ros::Publisher kinect_depth_pub_;
 
     InputTCPDevice kinect_bridge_client_;
 
@@ -51,6 +56,7 @@ public:
         nh_rel_( nh_rel ),
         kinect_speech_pub_( nh_rel_.advertise<_KinectSpeechMsg>( "speech", 10 ) ),
         kinect_bodies_pub_( nh_rel_.advertise<_KinectBodiesMsg>( "bodies", 10 ) ),
+        kinect_depth_pub_(nh_rel_.advertise<_KinectDepthImageMsg>( "depth", 10 ) ),
         kinect_bridge_client_( getParam<std::string>( nh_rel_, "server_ip", "localhost" ), getParam<int>( nh_rel_, "server_port", 5903 ) ),
         message_count_( 0 )
     {
@@ -132,6 +138,23 @@ public:
             }
 
             kinect_speech_pub_.publish( ros_kinect_speech_message );
+        }
+        else if( coded_header.payload_id_ == KinectDepthImageMessage::ID() ){
+            auto depth_msg = binary_message_coder_.decode<KinectDepthImageMessage>( coded_message );
+
+            auto const & header = depth_msg.header_;
+            auto const & payload = depth_msg.payload_;
+
+            _KinectDepthImageMsg ros_kinect_depth_image_msg;
+
+            for( size_t i = 0; i < payload.size(); ++ i )
+            {
+                _KinectDepthImageInfoMsg ros_kinect_depth_info_msg;
+                ros_kinect_depth_info_msg.min_reliable_distance_ = payload[i].min_reliable_distance_;
+                ros_kinect_depth_info_msg.max_reliable_distance_ = payload[i].min_reliable_distance_;
+                ros_kinect_depth_image_msg.depths.emplace_back( std::move( ros_kinect_depth_info_msg ) );
+            }
+            kinect_speech_pub_.publish( ros_kinect_depth_image_msg );
         }
         else if( coded_header.payload_id_ == KinectBodiesMessage::ID() )
         {
