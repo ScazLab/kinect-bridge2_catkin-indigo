@@ -117,6 +117,8 @@ else()
 	   KinectJoint.msg
 	   KinectSpeech.msg
 	   KinectSpeechPhrase.msg
+	   KinectDepthImage.msg
+	   KinectDepthImageInfo.msg
 	)
 
 	generate_messages(
