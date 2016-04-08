@@ -35,6 +35,10 @@ srv/_*.py
 qtcreator-*
 *.user
 
+# ignore deps
+src/kinect_bridge2/deps/*
+*.filters
+
 /planning/cfg
 /planning/docs
 /planning/src

@@ -23,6 +23,7 @@
 #include <messages/png_image_message.h>
 #include <messages/wav_audio_message.h>
 
+//test
 typedef KinectColorImageMessage<PNGImageMessage<> > _ColorImageMsg;
 typedef std::shared_ptr<_ColorImageMsg> _ColorImageMsgPtr;
 
