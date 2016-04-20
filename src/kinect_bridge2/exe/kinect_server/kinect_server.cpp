@@ -865,7 +865,7 @@ int main( int argc, char ** argv )
     {
         try
         {
-            kinect_device.initialize( false, false, false, false, true, true );
+            kinect_device.initialize( false, true, false, false, true, true );
             break;
         }
         catch( KinectException & e )
@@ -933,7 +933,7 @@ int main( int argc, char ** argv )
     for( size_t i = 0; i < 1; ++i ) compress_pool.start( speech_compress_task );
 
 //    read_pool.start( color_image_read_task );
-//    read_pool.start( depth_image_read_task );
+    read_pool.start( depth_image_read_task );
 //    read_pool.start( infrared_image_read_task );
 //    read_pool.start( audio_read_task );
     read_pool.start( bodies_read_task );
