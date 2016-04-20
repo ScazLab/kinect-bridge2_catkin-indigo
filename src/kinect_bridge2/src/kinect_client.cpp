@@ -25,6 +25,7 @@
 #include <kinect_bridge2/KinectSpeech.h>
 #include <kinect_bridge2/KinectBodies.h>
 #include <kinect_bridge2/KinectDepthImage.h>
+#include <kinect_bridge2/Custom.h>
 
 class KinectBridge2Client
 {
@@ -38,6 +39,8 @@ public:
 
     typedef kinect_bridge2::KinectDepthImage _KinectDepthImageMsg;
     typedef kinect_bridge2::KinectDepthImageInfo _KinectDepthImageInfoMsg;
+
+    typedef kinect_bridge2::Custom _CustomMsg;
 
     ros::NodeHandle nh_rel_;
 
@@ -144,12 +147,18 @@ public:
         else if( coded_header.payload_id_ == KinectDepthImageMessage<PNGImageMessage<> >::ID() ){
             auto depth_msg = binary_message_coder_.decode<KinectDepthImageMessage<PNGImageMessage<> > >( coded_message );
 
-            auto const & header = depth_msg.header_;
-            auto const & payload = depth_msg.payload_;
+            printf("%i\n", depth_msg.width_);
+            // _CustomMsg ros_kinect_depth_image_msg;
+            // ros_kinect_depth_image_msg.image = depth_msg;
+            // kinect_depth_pub_.publish(ros_kinect_depth_image_msg);
 
-            std::ofstream output_stream( "test_kinect_depth.png", std::ios::binary );
-            depth_msg.packAs<PNGImageMessage<>>(output_stream);
-            output_stream.close();
+            // auto const & header = depth_msg.header_;
+            // auto const & payload = depth_msg.payload_;
+
+            // printf("test kinect depth");
+            // std::ofstream output_stream( "test_kinect_depth.png", std::ios::binary );
+            // depth_msg.packAs<PNGImageMessage<>>(output_stream);
+            // output_stream.close();
 
             // _KinectDepthImageMsg ros_kinect_depth_image_msg;
 

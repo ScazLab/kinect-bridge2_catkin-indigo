@@ -119,12 +119,14 @@ else()
 	   KinectSpeechPhrase.msg
 	   KinectDepthImage.msg
 	   KinectDepthImageInfo.msg
+	   Custom.msg
 	)
 
 	generate_messages(
 	   DEPENDENCIES
 	   std_msgs  # Or other packages containing msgs
 	   geometry_msgs
+	   sensor_msgs
 	)
 
 	catkin_package(
