@@ -5,11 +5,20 @@
 #include <thread>
 #include <chrono>
 
+#include <stdio.h>
+
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/StreamSocket.h>
 #include <Poco/Net/SocketStream.h>
 
 #include <atomics/binary_stream.h>
+
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core/core.hpp>
 
 #include <messages/kinect_messages.h>
 #include <messages/binary_codec.h>
@@ -61,7 +70,7 @@ public:
         nh_rel_( nh_rel ),
         kinect_speech_pub_( nh_rel_.advertise<_KinectSpeechMsg>( "speech", 10 ) ),
         kinect_bodies_pub_( nh_rel_.advertise<_KinectBodiesMsg>( "bodies", 10 ) ),
-        kinect_depth_pub_(nh_rel_.advertise<_KinectDepthImageMsg>( "depth", 10 ) ),
+        kinect_depth_pub_(nh_rel_.advertise<sensor_msgs::Image>( "depth", 10 ) ),
         kinect_bridge_client_( getParam<std::string>( nh_rel_, "server_ip", "localhost" ), getParam<int>( nh_rel_, "server_port", 5903 ) ),
         message_count_( 0 )
     {
@@ -147,29 +156,47 @@ public:
         else if( coded_header.payload_id_ == KinectDepthImageMessage<PNGImageMessage<> >::ID() ){
             auto depth_msg = binary_message_coder_.decode<KinectDepthImageMessage<PNGImageMessage<> > >( coded_message );
 
-            printf("%i\n", depth_msg.width_);
-            // _CustomMsg ros_kinect_depth_image_msg;
-            // ros_kinect_depth_image_msg.image = depth_msg;
-            // kinect_depth_pub_.publish(ros_kinect_depth_image_msg);
+            auto & payload = depth_msg.payload_;
+            auto & header = depth_msg.header_;
 
-            // auto const & header = depth_msg.header_;
-            // auto const & payload = depth_msg.payload_;
+            // printf("%i\n", header.pixel_depth_);
+            // printf("%i\n", header.width_);
+            // printf("%i\n", header.height_);
+            // printf("%i\n", header.num_channels_);
+            // printf("%i\n", payload.size_);
 
-            // printf("test kinect depth");
-            // std::ofstream output_stream( "test_kinect_depth.png", std::ios::binary );
-            // depth_msg.packAs<PNGImageMessage<>>(output_stream);
-            // output_stream.close();
+            // std::cout << header.encoding_ << "\n";
 
-            // _KinectDepthImageMsg ros_kinect_depth_image_msg;
+            cv::Mat im(424, 512, CV_16UC1, payload.data_) ;
 
-            // for( size_t i = 0; i < payload.size(); ++ i )
-            // {
-            //     _KinectDepthImageInfoMsg ros_kinect_depth_info_msg;
-            //     ros_kinect_depth_info_msg.min_reliable_distance_ = payload[i].min_reliable_distance_;
-            //     ros_kinect_depth_info_msg.max_reliable_distance_ = payload[i].min_reliable_distance_;
-            //     ros_kinect_depth_image_msg.depths.emplace_back( std::move( ros_kinect_depth_info_msg ) );
+            // int rows = im.rows;
+            // int cols = im.cols;
+
+            // for(int i = 0; i < payload.size_; i++){
+            //     if(payload.data_[i]){
+            //         printf("At index %i data %d", i, payload.data_[i]);
+            //     }
             // }
-            //kinect_depth_pub_.publish( depth_msg );
+            
+            // printf("%d\n", im.at<uchar>(0, 0));
+
+            // for(size_t i = 0; i < rows; i++){
+            //     for(size_t j = 0; j < cols; j++){
+            //         printf("%d", im.at<uchar>(i, j));
+            //     }
+            //     printf("\n");
+            // }
+
+            // cv::namedWindow("hello",cv::WINDOW_NORMAL);
+            // cv::startWindowThread();
+            // cv::imshow("hello",im);
+            // cv::waitKey();
+            // cv::destroyWindow("hello");
+
+            cv_bridge::CvImage out_msg;
+            out_msg.encoding = sensor_msgs::image_encodings::MONO16;
+            out_msg.image = im;
+            kinect_depth_pub_.publish(out_msg.toImageMsg());
         }
         else if( coded_header.payload_id_ == KinectBodiesMessage::ID() )
         {

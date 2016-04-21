@@ -100,6 +100,7 @@ else()
 	  roscpp
 	  std_msgs
 	  tf
+	  cv_bridge
 	)
 
 	set( Poco_DIR cmake)
@@ -109,6 +110,7 @@ else()
 	set( PNG_LIBS png12 z )
 
 	find_package(Poco REQUIRED COMPONENTS Foundation Net Util)
+	find_package(OpenCV REQUIRED)
 
 	add_message_files(
 	   FILES
@@ -136,7 +138,7 @@ else()
 	   DEPENDS Poco
 	)
 
-	include_directories(include ${roscpp_INCLUDE_DIRS} 
+	include_directories(include ${OpenCV_INCLUDE_DIRS} ${roscpp_INCLUDE_DIRS} 
 	  ${catkin_INCLUDE_DIRS} ${Poco_INCLUDE_DIRS}
 	)
 
@@ -181,6 +183,7 @@ else()
 	add_executable(kinect_client src/kinect_client.cpp)
 
 	target_link_libraries(kinect_client
+	   ${OpenCV_LIBS}
 	   ${catkin_LIBRARIES}
 	   ${roscpp_LIBRARIES}
 	   atomics
