@@ -5,6 +5,8 @@
 #include <thread>
 #include <chrono>
 
+#include <inttypes.h>
+
 #include <stdio.h>
 
 #include <Poco/Net/SocketAddress.h>
@@ -159,42 +161,35 @@ public:
             auto & payload = depth_msg.payload_;
             auto & header = depth_msg.header_;
 
-            // printf("%i\n", header.pixel_depth_);
-            // printf("%i\n", header.width_);
-            // printf("%i\n", header.height_);
-            // printf("%i\n", header.num_channels_);
-            // printf("%i\n", payload.size_);
-
-            // std::cout << header.encoding_ << "\n";
-
-            cv::Mat im(424, 512, CV_16UC1, payload.data_) ;
-
-            // int rows = im.rows;
-            // int cols = im.cols;
+            int width = header.width_;
+            int height = header.height_;
 
             // for(int i = 0; i < payload.size_; i++){
-            //     if(payload.data_[i]){
-            //         printf("At index %i data %d", i, payload.data_[i]);
-            //     }
-            // }
-            
-            // printf("%d\n", im.at<uchar>(0, 0));
-
-            // for(size_t i = 0; i < rows; i++){
-            //     for(size_t j = 0; j < cols; j++){
-            //         printf("%d", im.at<uchar>(i, j));
-            //     }
-            //     printf("\n");
+            //     payload.data_[i] = float(payload.data_[i]);
             // }
 
-            // cv::namedWindow("hello",cv::WINDOW_NORMAL);
-            // cv::startWindowThread();
-            // cv::imshow("hello",im);
-            // cv::waitKey();
-            // cv::destroyWindow("hello");
+            cv::Mat im(height, width, CV_16UC1, payload.data_), labels;
+
+            im.convertTo(im, CV_32FC1);
+
+            // for(int i = 0; i < payload.size_; i++){
+            //     printf("%" PRIu16 " ", payload.data_[i]);
+            // }
+
+            // printf("\n");
+
+            cv::kmeans(im, 10, labels, cv::TermCriteria( cv::TermCriteria::EPS+cv::TermCriteria::COUNT, 10, 1.0),
+                        3, cv::KMEANS_PP_CENTERS);
+
+            cv::namedWindow("hello",cv::WINDOW_NORMAL);
+            cv::startWindowThread();
+            cv::imshow("hello", labels);
+            cv::waitKey();
+            cv::destroyWindow("hello");
 
             cv_bridge::CvImage out_msg;
-            out_msg.encoding = sensor_msgs::image_encodings::MONO16;
+            out_msg.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+            // out_msg.encoding = sensor_msgs::image_encodings::MONO16;
             out_msg.image = im;
             kinect_depth_pub_.publish(out_msg.toImageMsg());
         }
